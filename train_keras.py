@@ -16,11 +16,12 @@ from keras import optimizers
 from keras.callbacks import LearningRateScheduler
 from keras.layers.normalization import BatchNormalization
 from keras.utils.data_utils import get_file
+from keras.callbacks import ModelCheckpoint
 
-batch_size = 32         # according to the GPU memory
+batch_size = 80         # according to the GPU memory
 num_classes = 134       # number of classes
 epochs = 164            # epoch 
-iterations = 64         # iterations * batch_size = data number
+iterations = 250         # iterations * batch_size = data number
 
 img_rows, img_cols = 112, 112
 img_channels = 3
@@ -38,11 +39,11 @@ def my_load_data():
     train_x = pickle.load(fp,encoding='latin1')
   with open(lable_path, "rb") as ff:   # Unpickling
     train_y = pickle.load(ff,encoding='latin1')
-  return (train_x[301:],train_y[301:]),(train_x[:300],train_y[:300])
+  return (train_x[501:],train_y[501:]),(train_x[:500],train_y[:500])
 
 def scheduler(epoch):
-  learning_rate_init = 0.007
-  if epoch >= 70:
+  learning_rate_init = 0.006
+  if epoch >= 65:
     learning_rate_init = 0.001
   if epoch >= 122:
     learning_rate_init = 0.0001
@@ -161,7 +162,8 @@ model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy
 
 tb_cb = keras.callbacks.TensorBoard(log_dir=log_filepath, histogram_freq=0)
 change_lr = LearningRateScheduler(scheduler)
-cbks = [change_lr,tb_cb]
+checkpointer = ModelCheckpoint(filepath='./weights.hdf5', verbose=1, save_best_only=True)
+cbks = [change_lr,tb_cb,checkpointer]
 
 if not data_augmentation:
     print('Not using data augmentation.')
