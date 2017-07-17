@@ -18,10 +18,10 @@ from keras.layers.normalization import BatchNormalization
 from keras.utils.data_utils import get_file
 from keras.callbacks import ModelCheckpoint
 
-batch_size = 80         # according to the GPU memory
+batch_size = 25         # according to the GPU memory
 num_classes = 134       # number of classes
-epochs = 164            # epoch 
-iterations = 250         # iterations * batch_size = data number
+epochs = 200            # epoch 
+iterations = 800        # iterations * batch_size = data number
 
 img_rows, img_cols = 112, 112
 img_channels = 3
@@ -43,10 +43,14 @@ def my_load_data():
 
 def scheduler(epoch):
   learning_rate_init = 0.006
-  if epoch >= 65:
+  if epoch >= 30:
+    learning_rate_init = 0.004
+  if epoch >= 60:
     learning_rate_init = 0.001
-  if epoch >= 122:
+  if epoch >= 120:
     learning_rate_init = 0.0001
+  if epoch >= 160:
+    learning_rate_init = 0.00008
   return learning_rate_init
 
 def get_he_weight(k,c):
@@ -156,8 +160,14 @@ model.add(Activation('softmax'))
 # load pretrained weight from VGG19 by name      
 model.load_weights(filepath, by_name=True)
 
-# -------- optimizer setting -------- #
-sgd = optimizers.SGD(lr=.1, momentum=0.9, nesterov=True)
+
+
+#'' -------- optimizer setting -------- #
+sgd = optimizers.SGD(lr=0.002, decay=1e-6,momentum=0.9, nesterov=True)
+# adm = keras.optimizers.Adam(lr=0.1, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+# nadm = keras.optimizers.Nadam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=1e-08, schedule_decay=0.004)
+# rms = keras.optimizers.RMSprop(lr=0.01, rho=0.9, epsilon=1e-08, decay=0.0)
+
 model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
 tb_cb = keras.callbacks.TensorBoard(log_dir=log_filepath, histogram_freq=0)
